@@ -13,7 +13,7 @@ sampleTime = 0.0001;
 
 % Blast parameters
 phiB = 150;    % Elevation (deg)
-thetaB = 90;    % Azimuth (deg)
+thetaB = 90;   % Azimuth (deg)
 W = 10;        % Explosive mass (kg)
 d0 = 2.5;      % Standoff distance from blast (m)
 
