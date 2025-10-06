@@ -16,11 +16,10 @@ This repository contains the code required to run a simulation of a quadrotor be
 * generalParams.m: Calculate and pack variables for the simulation
 
 ##### Platform:
-MATLAB R2025b and later
+MATLAB R2025b and later.
 
 ##### Environment:
-Windows 10
-Ubuntu 20.04
+Windows 10 or Ubuntu 20.04.
 
 ##### Run Instructions:
 Lines 10-27 of main.m contain the parameters for the simulation.  Each set of parameters are explained below:
