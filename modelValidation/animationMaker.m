@@ -43,48 +43,48 @@ end
 for k = 1:N
     % Update the data
     if anim1 == 1
-    set(h1, 'YData', pressure(k,:));
-    set(h2, 'YData', velocity(k,:));
-
-    % vs T
-    figure(2)
-    sgtitle(sprintf('d = %f', X(k,k)));
-
-    drawnow;
-    frame = getframe(gcf);
-    im = frame2im(frame);
-    [A, map] = rgb2ind(im, 256);
-
-    if k == 1
-        imwrite(A, map, animFnVsT, 'gif', ...
-            'LoopCount', Inf, 'DelayTime', delayTime);
-    else
-        imwrite(A, map, animFnVsT, 'gif', ...
-            'WriteMode', 'append', 'DelayTime', delayTime);
-    end
+        set(h1, 'YData', pressure(k,:));
+        set(h2, 'YData', velocity(k,:));
+    
+        % vs T
+        figure(2)
+        sgtitle(sprintf('d = %f', X(k,k)));
+    
+        drawnow;
+        frame = getframe(gcf);
+        im = frame2im(frame);
+        [A, map] = rgb2ind(im, 256);
+    
+        if k == 1
+            imwrite(A, map, animFnVsT, 'gif', ...
+                'LoopCount', Inf, 'DelayTime', delayTime);
+        else
+            imwrite(A, map, animFnVsT, 'gif', ...
+                'WriteMode', 'append', 'DelayTime', delayTime);
+        end
     end
 
     % Update the data
     if anim2 == 1
-    set(h3, 'YData', pressure(k,:));
-    set(h4, 'YData', velocity(k,:));
-
-    % vs X
-    figure(3)
-    sgtitle(sprintf('t = %f', T(k,k)));
-
-    drawnow;
-    frame = getframe(gcf);
-    im = frame2im(frame);
-    [A, map] = rgb2ind(im, 256);
-
-    if k == 1
-        imwrite(A, map, animFnVsX, 'gif', ...
-            'LoopCount', Inf, 'DelayTime', delayTime);
-    else
-        imwrite(A, map, animFnVsX, 'gif', ...
-            'WriteMode', 'append', 'DelayTime', delayTime);
-    end
+        set(h3, 'YData', pressure(k,:));
+        set(h4, 'YData', velocity(k,:));
+    
+        % vs X
+        figure(3)
+        sgtitle(sprintf('t = %f', T(k,k)));
+    
+        drawnow;
+        frame = getframe(gcf);
+        im = frame2im(frame);
+        [A, map] = rgb2ind(im, 256);
+    
+        if k == 1
+            imwrite(A, map, animFnVsX, 'gif', ...
+                'LoopCount', Inf, 'DelayTime', delayTime);
+        else
+            imwrite(A, map, animFnVsX, 'gif', ...
+                'WriteMode', 'append', 'DelayTime', delayTime);
+        end
     end
     % pause
 end
