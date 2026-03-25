@@ -1,0 +1,49 @@
+% Clear everything
+clc;clf;clear all;close all;
+
+% Import the data
+load("cBestFitVars.mat")
+optFitFigs = 'optFitFigs/';
+cFigsDir = append(optFitFigs,'cFigs/');
+
+% Make the fit
+% fitStart = 100;
+% fitEnd = 500;
+[~,fitStart] = max(round(cVals(:,1),1)==0.1);
+[~,fitEnd] = max(round(cVals(:,1),1)==25);
+fitEnd = size(cVals,1) - fitEnd;
+rows = fitStart:size(cVals,1)-fitEnd;
+subset = cVals(fitStart:end-fitEnd,2);
+mask = isfinite(subset);
+% fitType = 'fourier3';
+% fitType = 'poly9';
+% fitType = 'exp2';
+% fitType = 'gauss2';
+fitType = 'power2';
+% fitType = 'weibull';
+f = fit(cVals(rows(mask),1),cVals(rows(mask),2),fitType);
+confIntVals = confint(f);
+cValFit = f(cVals(:,1));
+cValFit1sigPos = confIntVals(2,1)*(cVals(:,1).^confIntVals(2,2)) + confIntVals(2,3);
+cValFit1sigNeg = confIntVals(1,1)*(cVals(:,1).^confIntVals(1,2)) + confIntVals(1,3);
+
+% Make a figure for the fit
+figw = 12;
+figh = 4;
+lw = 1.4;
+figure(15)
+% set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot, 'defaultTextInterpreter','latex');
+% set(figC,'Color','w','Position',[0 3 figw/2 figh],'Units','inches')
+plot(cVals(rows(mask),1),cVals(rows(mask),2),'k.','DisplayName','Calcualted c')
+hold on
+plot(cVals(rows(mask),1),cValFit(rows(mask)),'r--','DisplayName',sprintf('Fit = %2.0f (m/s)', cValFit(end)),'LineWidth',lw)
+plot(cVals(rows(mask),1),cValFit1sigPos(rows(mask)),'b--','DisplayName','$1\sigma$','LineWidth',lw)
+plot(cVals(rows(mask),1),cValFit1sigNeg(rows(mask)),'b--','HandleVisibility','off','LineWidth',lw)
+xlabel('$r$ (m)')
+ylabel('$c$ (m/s)')
+grid on
+xticks(5:5:round(max(cVals(:,1)),-1))
+% xlim([5,30])
+legend('Location','best')
+fontsize(16,"points")
+savePlot(append('cFit'),cFigsDir)

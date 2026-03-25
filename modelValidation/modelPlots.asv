@@ -1,0 +1,191 @@
+clf;clc;clear all;close all;
+
+% General parameters
+t0 = 0;     % start time of blast - sec
+W = 10;     % mass of explosive - kg
+c = 343;    % speed of sound - m/s
+
+% Set initial and final values
+x0 = 0;
+xf = 30;
+t0 = 0;
+tf = 100;
+
+% Initialize ranges and make a mesh
+N = 100;
+x = linspace(x0,xf,N);
+t = linspace(x0,xf,N);
+[X, T] = meshgrid(x, t);
+
+% Initialize matrices to hold the pressure and velocity values
+pressure = zeros(N, N);
+velocity = zeros(N, N);
+
+% Calculate the pressure and time for all combinations
+hbar = waitbar(0,'Calculating data...');
+for i = 1:N
+    for j = 1:N
+        %%%%%%%%%%%%%%% General %%%%%%%%%%%%%%%
+        % Unpack
+        d = X(i,j);
+        t = T(i,j);
+        
+        % Calculate scaled values
+        cubeRootW = W^(-1/3);
+        scaledDist = d*cubeRootW;
+        scaledTime = c*t*cubeRootW;
+        % scaledTime = d*cubeRootW;
+
+        %%%%%%%%%%%%%%% Pressure %%%%%%%%%%%%%%%
+        [Ps, tau] = sadovskiy(W, scaledDist);
+        params = [Ps, t0, tau];
+        currP = Pmodel(params, t);
+
+        %%%%%%%%%%%%%%% Velocity %%%%%%%%%%%%%%%
+        [v, alpha, beta, a, ~] = deweyParams(scaledDist);
+        params = [v, alpha, beta, a];
+        hval = ceil(heaviside(t-t0));
+        currV = Vmodel(params, scaledTime, hval);
+
+        %%%%%%%%%%%%%%% Store data %%%%%%%%%%%%%%%
+        pressure(i, j) = currP;
+        velocity(i, j) = currV;
+        
+    end
+end
+
+%% Setup plotting
+figDir = 'noPropagationSpeedTesting';
+mkdir(figDir)
+lw = 1.2;
+colormap("turbo")
+
+%% Plot the data on a surface plot
+% Create surface plots for pressure and velocity
+figure(1);
+subplot(1, 2, 1);
+pcolor(X, T, pressure);
+xlabel('Distance (m)');
+ylabel('Time (s)');
+cb = colorbar();
+cb.Label.String = 'Pressure (Pa)';
+
+subplot(1, 2, 2);
+pcolor(X, T, velocity);
+xlabel('Distance (m)');
+ylabel('Time (s)');
+cb = colorbar();
+cb.Label.String = 'Velocity (m/s)';
+savePlot('modelMeshgrid.pdf',figDir)
+
+%% Make an animation of the models over time and distance (separately)
+animFnVsT = append(figDir,'/modelAnimationVsT.gif');
+animFnVsX = append(figDir,'/modelAnimationVsX.gif');
+delayTime = 0.05;            % Time between frames (seconds)
+
+figure(2);
+subplot(1,2,1)
+h1 = plot(T(1,:), pressure(1,:), 'LineWidth', lw);
+grid on
+xlabel('Time (sec)')
+ylabel('Pressure (Pa)');
+
+subplot(1,2,2)
+h2 = plot(T(1,:), velocity(1,:), 'LineWidth', lw);
+grid on
+xlabel('Time (sec)')
+ylabel('Velocity (m/s)');
+
+figure(3);
+subplot(1,2,1)
+h3 = plot(X(1,:), pressure(1,:), 'LineWidth', lw);
+grid on
+xlabel('Distance (m)')
+ylabel('Pressure (Pa)');
+
+subplot(1,2,2)
+h4 = plot(X(1,:), velocity(1,:), 'LineWidth', lw);
+grid on
+xlabel('Distance (m)')
+ylabel('Velocity (m/s)');
+
+for k = 1:N
+    % Update the data
+    set(h1, 'YData', pressure(k,:));
+    set(h2, 'YData', velocity(k,:));
+    set(h3, 'YData', pressure(k,:));
+    set(h4, 'YData', velocity(k,:));
+
+    % vs T
+    figure(2)
+    title(sprintf('t = %f', T(k,k)));
+
+    drawnow;
+    frame = getframe(gcf);
+    im = frame2im(frame);
+    [A, map] = rgb2ind(im, 256);
+
+    if k == 1
+        imwrite(A, map, animFnVsT, 'gif', ...
+            'LoopCount', Inf, 'DelayTime', delayTime);
+    else
+        imwrite(A, map, animFnVsT, 'gif', ...
+            'WriteMode', 'append', 'DelayTime', delayTime);
+    end
+
+    % vs X
+    figure(3)
+    title(sprintf('d = %f', X(k,k)));
+
+    drawnow;
+    frame = getframe(gcf);
+    im = frame2im(frame);
+    [A, map] = rgb2ind(im, 256);
+
+    if k == 1
+        imwrite(A, map, animFnVsX, 'gif', ...
+            'LoopCount', Inf, 'DelayTime', delayTime);
+    else
+        imwrite(A, map, animFnVsX, 'gif', ...
+            'WriteMode', 'append', 'DelayTime', delayTime);
+    end
+end
+% 
+% %% Make an animation of the models over distance
+% animFn = append(figDir,'/modelAnimationVsX.gif');
+% delayTime = 0.05;            % Time between frames (seconds)
+% 
+% figure(3);
+% subplot(1,2,1)
+% h1 = plot(X(1,:), pressure(1,:), 'LineWidth', lw);
+% grid on
+% xlabel('Distance (m)')
+% ylabel('Pressure (Pa)');
+% 
+% subplot(1,2,2)
+% h2 = plot(X(1,:), velocity(1,:), 'LineWidth', lw);
+% grid on
+% xlabel('Distance (m)')
+% ylabel('Velocity (m/s)');
+% 
+% for k = 1:N
+%     % Update the data
+%     set(h1, 'YData', pressure(k,:));
+%     set(h2, 'YData', velocity(k,:));
+% 
+%     % Optional: title or annotations
+%     title(sprintf('d = %f', T(k,k)));
+% 
+%     drawnow;
+%     frame = getframe(gcf);
+%     im = frame2im(frame);
+%     [A, map] = rgb2ind(im, 256);
+% 
+%     if k == 1
+%         imwrite(A, map, animFn, 'gif', ...
+%             'LoopCount', Inf, 'DelayTime', delayTime);
+%     else
+%         imwrite(A, map, animFn, 'gif', ...
+%             'WriteMode', 'append', 'DelayTime', delayTime);
+%     end
+% end

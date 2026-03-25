@@ -8,3 +8,5 @@
 sandiaComparisonSim/d0_phi180_theta0/d2.5m/Data.mat
 *.svg
 *.png
+/modelValidation/blastFoamDataPlotting/biggerDomainData
+*.csv
