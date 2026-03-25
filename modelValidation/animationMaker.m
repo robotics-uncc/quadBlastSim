@@ -6,7 +6,7 @@ anim2 = 1;
 %% Make an animation of the models over time and distance (separately)
 animFnVsT = append(figDir,'/modelAnimationVsT.gif');
 animFnVsX = append(figDir,'/modelAnimationVsX.gif');
-delayTime = 0.05;            % Time between frames (seconds)
+delayTime = 0.3;            % Time between frames (seconds)
 
 if anim1 == 1
 figure(2);
