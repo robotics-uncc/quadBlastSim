@@ -10,3 +10,4 @@ sandiaComparisonSim/d0_phi180_theta0/d2.5m/Data.mat
 *.png
 /modelValidation/blastFoamDataPlotting/biggerDomainData
 *.csv
+!modelValidation/noPropagationSpeedTesting/modelMeshgrid.pdf
