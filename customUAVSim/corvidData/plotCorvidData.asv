@@ -1,0 +1,18 @@
+clc;clf;clear all;close all;
+
+% Get the names of the cleaned txt files
+files = dir('*.txt');
+fileNames = {files.name};
+
+% Iterate through the txt files
+for i = 1:length(fileNames)
+    % Get the data from the files
+    T = readtable('far.txt');
+
+    % Separate the headers and time variable
+    headers = T.Properties.VariableNames;
+    time = T.Time;
+    for j = 1:length(headers)
+        
+    end
+end

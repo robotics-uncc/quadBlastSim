@@ -101,7 +101,7 @@ subplotN = linspace(1,dN,dN);
 figw = 12;
 figh = 4;
 lw = 1.4;
-aaa = 0;
+aaa = 1;
 if aaa == 1
 for bbb = 1:dN
     %% Clear and close the plot

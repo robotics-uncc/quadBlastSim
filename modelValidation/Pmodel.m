@@ -8,14 +8,14 @@ tau = params(3);
 % Calculate common values
 Dt = time-t0;
 eps = Dt/tau;
-sympref('HeavisideAtOrigin', 1);
-hval = ceil(heaviside(Dt));
+% sympref('HeavisideAtOrigin', 1);
+% hval = ceil(heaviside(Dt));
+
+hval = custHeaviside(Dt);
 
 % Calculate the velocity from the model, based on the parameters, and the current times
 modelP = Ps*exp(-eps).*(1-eps).*hval;
+if isnan(modelP)
+    1;
 end
-
-
-%%%%%%%%%%%%%% TO-DO %%%%%%%%%%%%%%
-% * Plot the models evaluated on a mesh of r's and t's
-% * Plot the models evaluated at the same times and r's as the comparison plots, as a new line for a further comparison
+end

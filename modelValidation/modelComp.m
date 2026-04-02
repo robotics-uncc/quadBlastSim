@@ -46,7 +46,6 @@ dVals = [5 10 15];
 % Ps = 10 * 1000; % peak overpressure, Pa
 % tau = 1/200; % time constant in pressure wave, seconds
 c = 360;% speed of wave, m/s
-R = 0.15; % radius of sphere, meters
 % t = linspace(0,tf,tf*2000); %times
 t = blastData.times;
 mach2ms = 343;
@@ -105,6 +104,7 @@ subplotN = linspace(1,dN,dN);
 figw = 12;
 figh = 4;
 lw = 1.4;
+blastData.nearIdx = zeros(dN,1);
 for bbb = 1:dN
     %% Clear and close the plot
     % clf;close all;
@@ -115,11 +115,11 @@ for bbb = 1:dN
     d = dVals(bbb);
     
     % Find the value nearest to d in the blast radii data - https://www.mathworks.com/matlabcentral/answers/194618-how-to-find-the-index-of-the-closest-value-to-some-number-in-1d-array
-    [~, blastData.nearIdx] = min(abs(blastData.radii-d));
-    blastR = blastData.radii(blastData.nearIdx);
+    [~, blastData.nearIdx(bbb,1)] = min(abs(blastData.radii-d));
+    blastR = blastData.radii(blastData.nearIdx(bbb,1));
     
     % Get peak overpressure based on nearest radii index
-    [PsStd, maxPsIdx] = max(blastData.overpressure(blastData.nearIdx,:));
+    [PsStd, maxPsIdx] = max(blastData.overpressure(blastData.nearIdx(bbb,1),:));
     
     % Get t0 based on the approximate first near zero overpressure value
     % see this plot for what to use (figure();plot(blastData.times(1:maxPsIdx+10),pressureVals(1:maxPsIdx+10)))
@@ -139,14 +139,15 @@ for bbb = 1:dN
     % Get t0 based on the approximate first near zero overpressure value
     % see this plot for what to use (figure();plot(blastData.times(1:maxPsIdx+10),pressureVals(1:maxPsIdx+10)))
     t0 = blastData.times(maxPsIdx);
+    % t0 = 0.001;
 
     % Interpolate the parameters for the velocity equation
     [Vs_i(bbb), alpha_i(bbb), beta_i(bbb), a_i(bbb), ~] = deweyParams(scaledDist(bbb));
     DT = t-t0;
 
     % Scale times
-    % scaledTime = c*(DT)/W;
-    scaledTime = c*(DT)/crW;
+    scaledTime = c*(DT)/W;
+    % scaledTime = c*(DT)/crW;
 
     % Calculate heaviside values
     sympref('HeavisideAtOrigin', 1);
@@ -170,8 +171,8 @@ for bbb = 1:dN
     options = optimoptions('lsqcurvefit','Algorithm','interior-point');
     lb = [];
     ub = [];
-    % optParam = lsqcurvefit(@(x,xdata)abs(Pmodel(x,xdata)), [5000, 0.05, 1/200], t', abs(blastData.overpressure(blastData.nearIdx,:)),lb,ub,options);
-    optParamP = lsqcurvefit(@(x,xdata)(abs(Pmodel(x,xdata))), PparamIC, t', abs(blastData.overpressure(blastData.nearIdx,:)),lb,ub,options);
+    % optParam = lsqcurvefit(@(x,xdata)abs(Pmodel(x,xdata)), [5000, 0.05, 1/200], t', abs(blastData.overpressure(blastData.nearIdx(bbb,1),:)),lb,ub,options);
+    optParamP = lsqcurvefit(@(x,xdata)(abs(Pmodel(x,xdata))), PparamIC, t', abs(blastData.overpressure(blastData.nearIdx(bbb,1),:)),lb,ub,options);
 
     % Unpack to store the params
     Ps_opt(bbb) = optParamP(1);
@@ -181,17 +182,17 @@ for bbb = 1:dN
     %% Calculate the pressure model based on the optimized parameters
     optP(bbb,:) = Pmodel(optParamP,blastData.times);
 
-    %% Plot the model, the data, and the optimized model ----- PRESSURE ONLY
+    %% Plot the model, the data, and the optimized model --- PRESSURE ONLY
     figP = figure(1);
     set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot, 'defaultTextInterpreter','latex');
     set(figP,'Color','w','Position',[0 3 figw figh],'Units','inches')
     subplot(1,3,subplotN(bbb))
     fntSize = 16;
     ax.FontSize = fntSize;
-    plot(t*1000,0.001*blastData.overpressure(blastData.nearIdx,:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
+    plot(t*1000,0.001*blastData.overpressure(blastData.nearIdx(bbb,1),:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
     hold on
     plot(t*1000,0.001*modelP(bbb,:), 'DisplayName','Model','LineWidth',lw,'LineStyle',':', 'Color','r')
-    plot(t*1000,0.001*optP(bbb,:),'DisplayName','Fit','LineWidth',lw,'LineStyle','--', 'Color','b')
+    plot(t*1000,0.001*optP(bbb,:),'DisplayName','Fit','LineWidth',lw,'LineStyle','-', 'Color','b')
     grid on
     xlabel('$t$ (ms)')
     if bbb == 1
@@ -201,14 +202,14 @@ for bbb = 1:dN
     % legend('Location','best')
     xticks(linspace(0, tf*1000,5))
     xlim([0, tf*1000])
-    % ylim([min(blastData.overpressure(blastData.nearIdx,:)),max(blastData.overpressure(blastData.nearIdx,:))])
+    % ylim([min(blastData.overpressure(blastData.nearIdx(bbb,1),:)),max(blastData.overpressure(blastData.nearIdx(bbb,1),:))])
     % savePlot(append('pCompAtd', strrep(string(d),'.',',')),optFitFigs)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VELOCITY MODEL OPT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Parameter Optimization - VELOCITY ONLY
     % Setup input - t0 might change throughout the data
     currParams.t0 = t0;
-    currParams.dataV = blastData.Umag(blastData.nearIdx,:);
+    currParams.dataV = blastData.Umag(blastData.nearIdx(bbb,1),:);
     
     % Run fmincon
     % optParam = fmincon(@(x)deweyOpt(x,currParams), paramIC, [], [], [], [], lb, ub);
@@ -233,10 +234,10 @@ for bbb = 1:dN
     set(figV,'Color','w','Position',[0 3 figw figh],'Units','inches')
     subplot(1,3,subplotN(bbb))
     ax.FontSize = fntSize;
-    plot(t*1000,blastData.Umag(blastData.nearIdx,:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
+    plot(t*1000,blastData.Umag(blastData.nearIdx(bbb,1),:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
     hold on
     plot(t*1000,modelV(bbb,:)*mach2ms, 'DisplayName','Model','LineWidth',lw,'LineStyle',':', 'Color','r')
-    plot(t*1000,optV(bbb,:)*mach2ms,'DisplayName','Fit','LineWidth',lw,'LineStyle','--', 'Color','b')
+    plot(t*1000,optV(bbb,:)*mach2ms,'DisplayName','Fit','LineWidth',lw,'LineStyle','-', 'Color','b')
     grid on
     xlabel('$t$ (ms)')
     if bbb == 1
@@ -249,7 +250,7 @@ for bbb = 1:dN
     % else
     %     yticks(round(linspace(0,max(modelV(bbb,:)*mach2ms),5),-1))
     % end
-    yticks(linspace(0,round(max(modelV(bbb,:)*mach2ms),-2),5))
+    % yticks(linspace(0,round(max(modelV(bbb,:)*mach2ms),-2),5))
     xlim([0, tf*1000])
     % savePlot(append('vCompAtd', strrep(string(d),'.',',')),optFitFigs)
 
@@ -269,3 +270,99 @@ fontsize(16,"points")
 legend('Location','best')
 savePlot(append('vComps'),optFitFigs)
 
+% Print out percent diff
+idx15m = 3;
+blastDataIdx = blastData.nearIdx(idx15m,1);
+a1 = max(modelP(idx15m,:));
+b1 = max(blastData.overpressure(blastDataIdx,:));
+a2 = max(modelV(idx15m,:));
+b2 = max(blastData.Umag(blastDataIdx,:));
+diffs(3,:) = [percentDiff(a1,b1), percentDiff(a2,b2)];
+sprintf('the pressure model is %6.6f percent larger than the cfd data for d = %2.1f m',diffs(idx15m,1), d)
+sprintf('the velocity model is %6.6f percent larger than the cfd data for d = %2.1f m',diffs(idx15m,2), d)
+
+% Plot parameters
+figw = 6.5;
+figh = 3;
+lw = 1.2;
+fntSize = 12;
+
+%% Make the blast parameter plot for the paper at r = 15m
+fig6 = figure(6);
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot, 'defaultTextInterpreter','latex');
+set(fig6,'Color','w','Position',[0 3 figw figh],'Units','inches')
+% ax.FontSize = fntSize;
+
+% Overpressure
+subplot(2,2,1)
+plot(t*1000,0.001*blastData.overpressure(blastDataIdx,:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
+hold on
+plot(t*1000,0.001*modelP(idx15m,:), 'DisplayName','Model','LineWidth',lw,'LineStyle',':', 'Color','r')
+plot(t*1000,0.001*optP(idx15m,:),'DisplayName','Fit','LineWidth',lw,'LineStyle','-', 'Color','b')
+grid on
+ylabel('Overpressure (kPa)')
+title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
+legend('Location','northeast')
+xticks(linspace(0, tf*1000,5))
+xlim([0, tf*1000])
+
+% Calc pressure diffs
+% modelPerecentDiffPres = percentDiff((0.001*modelP(idx15m,:)),(0.001*blastData.overpressure(blastDataIdx,:)));
+% bestFitPerecentDiffPres = percentDiff((0.001*optP(idx15m,:)),(0.001*blastData.overpressure(blastDataIdx,:)));
+modelDiffPres = (0.001*modelP(idx15m,:))-(0.001*blastData.overpressure(blastDataIdx,:));
+bestFitDiffPres = (0.001*optP(idx15m,:))-(0.001*blastData.overpressure(blastDataIdx,:));
+
+% Overpressure model error
+subplot(2,2,2)
+% plot(t*1000,modelPerecentDiffPres,'DisplayName','Model Error','LineWidth',lw,'LineStyle',':','Color','r')
+plot(t*1000,modelDiffPres,'DisplayName','Model Error','LineWidth',lw,'LineStyle',':','Color','r')
+hold on
+% plot(t*1000,bestFitPerecentDiffPres,'DisplayName','Best Fit Error','LineWidth',lw,'LineStyle','-','Color','b')
+plot(t*1000,bestFitDiffPres,'DisplayName','Best Fit Error','LineWidth',lw,'LineStyle','-','Color','b')
+grid on
+ylabel('Overpressure Error (kPa)')
+legend('Location','southeast')
+title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
+xticks(linspace(0, tf*1000,5))
+xlim([0, tf*1000])
+
+% Velocity
+subplot(2,2,3)
+ax.FontSize = fntSize;
+plot(t*1000,blastData.Umag(blastDataIdx,:),'DisplayName','CFD','LineWidth',lw,'LineStyle','-.','Color','k')
+hold on
+plot(t*1000,modelV(idx15m,:)*mach2ms, 'DisplayName','Model','LineWidth',lw,'LineStyle',':', 'Color','r')
+plot(t*1000,optV(idx15m,:)*mach2ms,'DisplayName','Fit','LineWidth',lw,'LineStyle','-', 'Color','b')
+grid on
+xlabel('Time (ms)')
+ylabel('Wind Magnitude (m/s)')
+% legend('Location','best')
+title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
+xticks(linspace(0, tf*1000,5))
+xlim([0, tf*1000])
+
+% Calc velocity diffs
+% modelPerecentDiffVel = percentDiff((modelV(idx15m,:)*mach2ms),(blastData.Umag(blastDataIdx,:)));
+% bestFitPerecentDiffVel = percentDiff((optV(idx15m,:)*mach2ms),blastData.Umag(blastDataIdx,:));
+modelDiffVel = (modelV(idx15m,:)*mach2ms)-(blastData.Umag(blastDataIdx,:));
+bestFitDiffVel = (optV(idx15m,:)*mach2ms)-blastData.Umag(blastDataIdx,:);
+
+% Velocity model error
+subplot(2,2,4)
+ax.FontSize = fntSize;
+plot(t*1000,modelDiffVel,'DisplayName','Model Error','LineWidth',lw,'LineStyle',':','Color','r')
+% plot(t*1000,modelPerecentDiffVel,'DisplayName','Model Error','LineWidth',lw,'LineStyle',':','Color','r')
+hold on
+plot(t*1000,bestFitDiffVel,'DisplayName','Best Fit Error','LineWidth',lw,'LineStyle','-','Color','b')
+% plot(t*1000,bestFitPerecentDiffVel,'DisplayName','Best Fit Error','LineWidth',lw,'LineStyle','-','Color','b')
+grid on
+xlabel('Time (ms)')
+ylabel('Wind Error (m/s)')
+% legend('Location','best')
+title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
+xticks(linspace(0, tf*1000,5))
+xlim([0, tf*1000])
+
+% Save the figure
+% fontsize(fntSize,'points')
+savePlot('blast_parameter_plot','.');

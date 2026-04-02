@@ -250,8 +250,8 @@ for bbb = 1:dN
     % else
     %     yticks(round(linspace(0,max(modelV(bbb,:)*mach2ms),5),-1))
     % end
-    yticks(linspace(0,round(max(modelV(bbb,:)*mach2ms),-2),5))
-    xlim([0, tf*1000])
+    % yticks(linspace(0,round(max(modelV(bbb,:)*mach2ms),-2),5))
+    % xlim([0, tf*1000])
     % savePlot(append('vCompAtd', strrep(string(d),'.',',')),optFitFigs)
 
     % Pause
