@@ -12,14 +12,18 @@ simTime = 0.1;
 sampleTime = 0.0001;
 
 % Blast parameters
-phiB = 150;    % Elevation (deg)
-thetaB = 90;   % Azimuth (deg)
+% phiB = 150;    % Elevation (deg)
+% thetaB = 90;   % Azimuth (deg)
+phiB = 0;    % Elevation (deg)
+thetaB = 0;   % Azimuth (deg)
 W = 10;        % Explosive mass (kg)
 d0 = 2.5;      % Standoff distance from blast (m)
 
 % Vehicle parameters
-rBody = 0.05;
-rMotors = 0.05;
+% rBody = 0.05;
+rBody = 0.1016;
+% rMotors = 0.05;
+rMotors = 0.01905;
 L = 0.15;
 motorRPM = 5000; % 0 = no thrust, 5000 = hover thrust, 10000 = max thrust
 mBody = 1;

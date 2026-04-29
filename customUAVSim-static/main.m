@@ -1,0 +1,80 @@
+% Clear things for a clean simulation
+clc;clf;clear all;close all;
+
+% If you have either of the following stack trace errors, uncomment the follwoing line
+% (https://www.mathworks.com/support/bugreports/2632298?status=SUCCESS)
+%      - _dl_allocate_tls_init+00000075 at /lib64/ld-linux-x86-64.so
+%      - Inconsistency detected by ld.so: ../elf/dl-tls.c: 517: _dl_allocate_tls_init: Assertion `listp != NULL' failed!
+% load_sl_glibc_patch % <--- uncomment this line
+
+% Simulation parameters
+simTime = 0.1;
+sampleTime = 0.0001;
+% t0 = 15/1000;
+
+% Blast parameters - corvid sim
+thetaB = -45;
+phiB = 125.26;
+W = 4.98952;
+d0 = 8.66025;
+t0 = 0.024056;
+
+% Vehicle parameters - as close to the iris as possible
+rBody = 0.55/4; % https://www.arducopter.co.uk/iris-quadcopter-uav.html
+rMotors = 0.222; % https://store.tmotor.com/product/mn2212-v2-motor-navigator-type.html
+L = 0.55/2; % https://www.arducopter.co.uk/iris-quadcopter-uav.html
+motorRPM = 5000; % 0 = no thrust, 5000 = hover thrust, 10000 = max thrust
+mBody = 800/1000;
+mMotor = 55/1000;
+mArm = ((1282/1000)-(mBody-(mMotor*4)))/4;
+
+% Directory information
+addpath('subroutines/')
+mainFigDirName = append('d0_phi', string(phiB), '_theta', string(thetaB));
+mkdir(mainFigDirName)
+
+% Load the common constants for the sim (vehicle params, control constants, etc)
+generalParams;
+
+% Get the values from the simulated model
+tic
+out = sim(mdl);
+toc
+
+% Plotting scripts
+pltSetup;
+% statesOverTimeFig;
+
+% Plot the forces over all of the axes
+allForce = bodyDrag + motor1Drag + motor2Drag + motor3Drag + motor4Drag;
+forceFig = figure(7);
+set(forceFig,'Color','w','Units','inches','Position',[0 0 10 7.5])
+set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot, 'defaultTextInterpreter','latex');
+
+labs = ["Axial Force (N)", "Side Force (N)", "Normal Force (N)", ...
+        "Rolling Moment (Nm)", "Pitching Moment (Nm)", "Yawing Moment (Nm)"];
+
+for i = 1:3
+    subplot(3,2,i*2-1)
+    plot(t*1000, allForce(:,i))
+    ylabel(labs(i))
+    grid on
+    if i == 3
+        xlabel('Time (ms)')
+    end
+end
+subplot(3,2,2)
+plot(t*1000, totalMx)
+ylabel(labs(4))
+    grid on
+subplot(3,2,4)
+plot(t*1000, totalMy)
+ylabel(labs(5))
+    grid on
+subplot(3,2,6)
+plot(t*1000, totalMz)
+ylabel(labs(6))
+    grid on
+
+xlabel('Time (ms)')
+savePlot('allForces', figDir)

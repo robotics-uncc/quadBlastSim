@@ -146,8 +146,8 @@ for bbb = 1:dN
     DT = t-t0;
 
     % Scale times
-    scaledTime = c*(DT)/W;
-    % scaledTime = c*(DT)/crW;
+    % scaledTime = c*(DT)/W;
+    scaledTime = c*(DT)/crW;
 
     % Calculate heaviside values
     sympref('HeavisideAtOrigin', 1);
@@ -163,7 +163,7 @@ for bbb = 1:dN
     modelV(bbb,:) = Vmodel(VparamIC,scaledTime,hval);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PRESSURE MODEL OPT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Pressure parameter Optimization    
+    % Pressure parameter Optimization    
     % Run fmincon
     % optParam = fmincon(@(x)deweyOpt(x,currParams), paramIC, [], [], [], [], lb, ub);
 
@@ -290,7 +290,7 @@ fntSize = 12;
 %% Make the blast parameter plot for the paper at r = 15m
 fig6 = figure(6);
 set(groot, 'defaultAxesTickLabelInterpreter','latex'); set(groot, 'defaultLegendInterpreter','latex'); set(groot, 'defaultTextInterpreter','latex');
-set(fig6,'Color','w','Position',[0 3 figw figh],'Units','inches')
+set(fig6,'Color','w','Units','inches','Position',[0 3 figw figh])
 % ax.FontSize = fntSize;
 
 % Overpressure
@@ -304,6 +304,8 @@ ylabel('Overpressure (kPa)')
 title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
 legend('Location','northeast')
 xticks(linspace(0, tf*1000,5))
+ylim_vals = ylim;
+yticks(linspace(floor(ylim_vals(1)), round(ylim_vals(2),-1), 5));
 xlim([0, tf*1000])
 
 % Calc pressure diffs
@@ -324,6 +326,8 @@ ylabel('Overpressure Error (kPa)')
 legend('Location','southeast')
 title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
 xticks(linspace(0, tf*1000,5))
+ylim_vals = ylim;
+yticks(linspace(floor(ylim_vals(1)), round(ylim_vals(2),-1), 5));
 xlim([0, tf*1000])
 
 % Velocity
@@ -339,6 +343,8 @@ ylabel('Wind Magnitude (m/s)')
 % legend('Location','best')
 title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
 xticks(linspace(0, tf*1000,5))
+ylim_vals = ylim;
+yticks(linspace(floor(ylim_vals(1)), round(ylim_vals(2),-1), 5));
 xlim([0, tf*1000])
 
 % Calc velocity diffs
@@ -361,6 +367,8 @@ ylabel('Wind Error (m/s)')
 % legend('Location','best')
 title(sprintf('$r$ = %2.0f m',d),'Interpreter','latex')
 xticks(linspace(0, tf*1000,5))
+ylim_vals = ylim;
+yticks(linspace(floor(ylim_vals(1)), round(ylim_vals(2),-1), 5));
 xlim([0, tf*1000])
 
 % Save the figure

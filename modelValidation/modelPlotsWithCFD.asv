@@ -1,0 +1,303 @@
+clf; clc; clear all; close all;
+
+%% ========================= User controls =========================
+% General parameters
+W = 10;              % mass of explosive [kg]
+c = 343;             % speed of sound [m/s]
+mach2ms = 343;       % mach to m/s
+
+% Mesh/plot window controls
+x0  = 0.1;           % minimum distance [m]
+xf  = 2.5;            % maximum distance shown in blast plots [m]
+t00 = 2e-04;             % initial time [s]
+tf  = 0.01;          % maximum time shown in blast plots [s]
+N   = 500;           % mesh resolution
+set(groot, 'defaultAxesLabelFontSizeMultiplier', 1)
+set(groot, 'defaultAxesTitleFontWeight', 'normal')
+
+% Import the best fit propagation speed
+propSpeedData = load("cBestFitVars.mat");
+cF = propSpeedData.f;
+
+% Slice plot control
+xSlice = 15;         % desired distance for time-history slice [m]
+lw = 1.2;            % line width for slice plots
+
+% BlastFoam data directory
+blastDataDir = 'blastFoamDataPlotting/processedData10kgFine';
+
+% Save directory
+figDir = 'meshgridPandV';
+mkdir(figDir)
+
+%% ========================= Load BlastFoam data =========================
+dirInfo = dir(fullfile(blastDataDir, '*.csv'));
+filenames = string({dirInfo.name});
+
+blastData.Umag = table2array(readtable(fullfile(blastDataDir, filenames(1)), 'NumHeaderLines', 1));
+blastData.overpressure = table2array(readtable(fullfile(blastDataDir, filenames(2)), 'NumHeaderLines', 1));
+blastData.radii = table2array(readtable(fullfile(blastDataDir, filenames(3)), 'NumHeaderLines', 1));
+blastData.radii = blastData.radii(:,1);
+blastData.times = table2array(readtable(fullfile(blastDataDir, filenames(4)), 'NumHeaderLines', 1));
+
+% Trim raw arrays to time vector length
+blastData.Umag = blastData.Umag(:,1:length(blastData.times));
+blastData.overpressure = blastData.overpressure(:,1:length(blastData.times));
+
+% Crop BlastFoam data to requested plotting window
+xMask = blastData.radii >= x0 & blastData.radii <= xf;
+tMask = blastData.times >= t00 & blastData.times <= tf;
+
+blastRadiiCrop = blastData.radii(xMask);
+blastTimesCrop = blastData.times(tMask);
+
+% Convert to time x distance so it matches meshgrid(X,T) style
+blastPressure_kPa = 0.001 * blastData.overpressure(xMask, tMask)';   % [kPa]
+blastVelocity_ms = blastData.Umag(xMask, tMask)';                    % [m/s]
+
+[Xbf, Tbf] = meshgrid(blastRadiiCrop, blastTimesCrop);
+
+%% ========================= Parallel model calculations =========================
+% Start a parallel pool if needed
+pool = gcp('nocreate');
+if isempty(pool)
+    parpool;
+end
+
+% Non-propagated model
+[Xnp, Tnp, pressureNP, velocityNP, all_Ps_np, all_tau_np, all_V_np, all_alpha_np, all_beta_np, all_a_np] = ...
+    calcModelGrid(W, cF, mach2ms, x0, xf, t00, tf, N, 0);
+
+% Propagated model
+[Xp, Tp, pressureP, velocityP, all_Ps_p, all_tau_p, all_V_p, all_alpha_p, all_beta_p, all_a_p] = ...
+    calcModelGrid(W, cF, mach2ms, x0, xf, t00, tf, N, 1);
+
+%% ========================= Figure 1: transposed 2 x 3 layout =========================
+% Rows = {Pressure, Velocity}
+% Cols = {Non-propagated, Propagated, BlastFoam}
+
+% Convert model outputs to plotting units
+pressureNP_kPa = 0.001 * pressureNP;
+pressureP_kPa  = 0.001 * pressureP;
+velocityNP_ms  = mach2ms * velocityNP;
+velocityP_ms   = mach2ms * velocityP;
+
+xLimits = [x0 xf];
+% yLimits = [t00 tf];
+yLimits = [blastTimesCrop(1) tf];
+
+% Shared color limits across each row
+% pMin = min([pressureNP_kPa(:); pressureP_kPa(:); blastPressure_kPa(:)]);
+% pMax = max([pressureNP_kPa(:); pressureP_kPa(:); blastPressure_kPa(:)]);
+pMin = 0;
+pMax = 1e4;
+% pMin = min([pressureNP_kPa(:); pressureP_kPa(:)]);
+% pMax = max([pressureNP_kPa(:); pressureP_kPa(:)]);
+
+vMin = min([velocityNP_ms(:); velocityP_ms(:); blastVelocity_ms(:)]);
+vMax = max([velocityNP_ms(:); velocityP_ms(:); blastVelocity_ms(:)]);
+
+figure(1);
+set(gcf, 'Color', 'w', 'Units', 'inches', 'Position', [1, 1, 7, 6.2]);
+colormap("turbo")
+
+fntSz = 12;
+tckSz = 10;
+fontSizes.fntSz = fntSz;
+fontSizes.tckSz = tckSz;
+
+% ---------------- Pressure row ----------------
+ax1 = subplot(2,3,1);
+plotMeshPanel(ax1, Xnp, Tnp, pressureNP_kPa, [pMin pMax], 'Pressure (kPa)', xLimits, yLimits, fontSizes);
+title('Non-propagated Pressure','FontSize',fntSz)
+ylabel('Time (s)','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+
+ax2 = subplot(2,3,2);
+plotMeshPanel(ax2, Xp, Tp, pressureP_kPa, [pMin pMax], 'Pressure (kPa)', xLimits, yLimits, fontSizes);
+title('Propagated Pressure','FontSize',fntSz)
+
+ax3 = subplot(2,3,3);
+plotMeshPanel(ax3, Xbf, Tbf, blastPressure_kPa, [pMin pMax], 'Pressure (kPa)', xLimits, yLimits, fontSizes);
+title('BlastFoam Pressure','FontSize',fntSz)
+
+% ---------------- Velocity row ----------------
+ax4 = subplot(2,3,4);
+plotMeshPanel(ax4, Xnp, Tnp, velocityNP_ms, [vMin vMax], 'Velocity (m/s)', xLimits, yLimits, fontSizes);
+title('Non-propagated Velocity','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+ylabel('Time (s)','FontSize',fntSz)
+
+ax5 = subplot(2,3,5);
+plotMeshPanel(ax5, Xp, Tp, velocityP_ms, [vMin vMax], 'Velocity (m/s)', xLimits, yLimits);
+title('Propagated Velocity','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+
+ax6 = subplot(2,3,6);
+plotMeshPanel(ax6, Xbf, Tbf, blastVelocity_ms, [vMin vMax], 'Velocity (m/s)', xLimits, yLimits);
+title('BlastFoam Velocity','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+
+% sgtitle('Empirical Model and BlastFoam Mesh Comparisons')
+
+savePlot('updatedModelMesh', '.')
+
+%% ========================= Optional time-history slice plot =========================
+% Use the nearest available x location in the requested window
+[~, idxSlice] = min(abs(Xp(1,:) - min(max(xSlice, x0), xf)));
+
+figure(5);
+set(gcf, 'Color', 'w', 'Units', 'inches', 'Position', [1, 1, 6.5, 2.6]);
+
+subplot(1,2,1)
+plot(1000*Tp(:,idxSlice), 0.001*pressureP(:,idxSlice), 'LineWidth', lw)
+grid on
+xlabel('Time (ms)','FontSize',fntSz)
+ylabel('Pressure (kPa)','FontSize',fntSz)
+title(sprintf('Propagated Model at x = %0.2f m', Xp(1,idxSlice)))
+
+subplot(1,2,2)
+plot(1000*Tp(:,idxSlice), mach2ms*velocityP(:,idxSlice), 'LineWidth', lw)
+grid on
+xlabel('Time (ms)','FontSize',fntSz)
+ylabel('Velocity (m/s)','FontSize',fntSz)
+title(sprintf('Propagated Model at x = %0.2f m', Xp(1,idxSlice)))
+
+savePlot('propagated_slice_pandv_vs_t', figDir)
+
+%% ========================= Model parameter meshgrid figure =========================
+% Keep parameter plots for the propagated model
+figure(10);
+set(gcf,'Color','w', 'Units','inches', 'Position',[1, 1, 9, 5.5]);
+colormap("turbo")
+
+ax1 = subplot(2, 3, 1);
+plotMeshPanel(ax1, Xp, Tp, all_Ps_p, [], 'Ps (Pa)', xLimits, yLimits);
+title('Sadovskiy P_s','FontSize',fntSz)
+ylabel('Time (s)','FontSize',fntSz)
+
+ax2 = subplot(2, 3, 2);
+plotMeshPanel(ax2, Xp, Tp, all_tau_p, [], '\tau (s)', xLimits, yLimits);
+title('Sadovskiy \tau','FontSize',fntSz)
+
+ax3 = subplot(2, 3, 3);
+plotMeshPanel(ax3, Xp, Tp, all_V_p, [], 'V_s', xLimits, yLimits);
+title('Dewey V_s','FontSize',fntSz)
+
+ax4 = subplot(2, 3, 4);
+plotMeshPanel(ax4, Xp, Tp, all_alpha_p, [], '\alpha', xLimits, yLimits);
+title('Dewey \alpha','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+ylabel('Time (s)','FontSize',fntSz)
+
+ax5 = subplot(2, 3, 5);
+plotMeshPanel(ax5, Xp, Tp, all_beta_p, [], '\beta', xLimits, yLimits);
+title('Dewey \beta','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+
+ax6 = subplot(2, 3, 6);
+plotMeshPanel(ax6, Xp, Tp, all_a_p, [], 'a', xLimits, yLimits);
+title('Dewey a','FontSize',fntSz)
+xlabel('Distance (m)','FontSize',fntSz)
+
+savePlot('propagated_modelParams', figDir)
+
+%% ========================= Save processed data =========================
+save(fullfile(figDir, 'modelMeshgrid_with_blastFoam_processedData.mat'), ...
+    'Xnp', 'Tnp', 'pressureNP', 'velocityNP', ...
+    'Xp', 'Tp', 'pressureP', 'velocityP', ...
+    'Xbf', 'Tbf', 'blastPressure_kPa', 'blastVelocity_ms', ...
+    'all_Ps_np', 'all_tau_np', 'all_V_np', 'all_alpha_np', 'all_beta_np', 'all_a_np', ...
+    'all_Ps_p', 'all_tau_p', 'all_V_p', 'all_alpha_p', 'all_beta_p', 'all_a_p', ...
+    'x0', 'xf', 't00', 'tf', 'N', 'xSlice');
+
+%% ========================= Local functions =========================
+function [X, T, pressure, velocity, all_Ps, all_tau, all_V, all_alpha, all_beta, all_a] = ...
+    calcModelGrid(W, c, mach2ms, x0, xf, t00, tf, N, propFlag)
+
+    x = linspace(x0, xf, N);
+    tspan = linspace(t00, tf, N);
+    [X, T] = meshgrid(x, tspan);
+
+    pressure  = zeros(N, N);
+    velocity  = zeros(N, N);
+    all_Ps    = zeros(N, N);
+    all_tau   = zeros(N, N);
+    all_V     = zeros(N, N);
+    all_alpha = zeros(N, N);
+    all_beta  = zeros(N, N);
+    all_a     = zeros(N, N);
+
+    nPts = numel(X);
+
+    parfor idx = 1:nPts
+        d = X(idx);
+        t = T(idx);
+
+        if propFlag == 1
+            t0_local = t00 + (d - x0) / c(d);
+        else
+            t0_local = t00;
+        end
+        Dt = t - t0_local;
+
+        cubeRootWInv = W^(-1/3);
+        scaledDist = d * cubeRootWInv;
+        scaledTime = c(d) * max(Dt, 0) * cubeRootWInv;
+
+        [Ps, tau] = sadovskiy(W, scaledDist);
+        currP = Pmodel([Ps, t0_local, tau], t);
+
+        [v, alpha, beta, a, ~] = deweyParams(scaledDist);
+        hval = custHeaviside(Dt);
+        currV = Vmodel([v, alpha, beta, a], scaledTime, hval);
+
+        pressure(idx)   = currP;
+        velocity(idx)   = currV;
+        all_Ps(idx)     = Ps;
+        all_tau(idx)    = tau;
+        all_V(idx)      = v;
+        all_alpha(idx)  = alpha;
+        all_beta(idx)   = beta;
+        all_a(idx)      = a;
+    end
+end
+
+function plotMeshPanel(ax, X, T, Z, climVals, cbLabel, xLimits, yLimits, fontSizes)
+    axes(ax);
+    pcolor(X, T, Z)
+    shading interp
+    axis square
+    grid off
+    fntSz = fontSizes.fntSz;
+    tckSz = fontSizes.tckSz;
+
+    % Force consistent axes
+    xlim(xLimits)
+    ylim(yLimits)
+
+    % ---- 5 ticks everywhere ----
+    xticks(linspace(xLimits(1), xLimits(2), 5))
+    yticks(linspace(yLimits(1), yLimits(2), 5))
+    
+    % ---- Force decimal display (NO scientific notation) ----
+    xtickformat('%.2f')   % distance
+    ytickformat('%.3g')   % time
+
+    % ---- Font sizes ----
+    ax = gca;
+    ax.FontSize = tckSz;
+    ax.XAxis.Exponent = 0;
+    ax.YAxis.Exponent = 0;
+
+    % Colorbar
+    cb = colorbar;
+    cb.Label.String = cbLabel;
+    cb.FontSize = tckSz;           % tick labels
+    cb.Label.FontSize = fntSz;     % label
+    cb.Ruler.Exponent = 0;      % remove ×10^n
+
+    if ~isempty(climVals)
+        clim(climVals)
+    end
+end
