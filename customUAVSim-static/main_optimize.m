@@ -47,7 +47,7 @@ params.simTime = 0.2;
 
 % --- DEFINE BOUNDARIES ---
 % Order: [thetaB, phiB, rBody, rMotors, L, mBody, mMotor, mArm, t0]
-lb_real = [-180,   0, 0.05, 0.01, 0.10, 0.20, 0.01, 0.01, 0.00];
+lb_real = [-180,   0, 0.05, 0.01, 0.10, 0.20, 0.01, 0.01, -0.50];
 ub_real = [ 180, 360, 0.90, 0.30, 1.50, 6.00, 0.60, 0.90, 0.50];
 
 % Normalize parameters for the optimizer [0, 1] for stable gradients
@@ -56,7 +56,7 @@ ub_norm = ones(1, 9);
 
 % --- Pre-calculate Logsout Indices ---
 disp('Performing initialization run to cache model data...');
-x0_real = [-45, 125.26, 0.1375, 0.022, 0.275, 0.8, 0.055, 0.1755, 0.024056];
+x0_real = [-45, 125.26, 0.1375, 0.022, 0.275, 0.8, 0.055, 0.1755, 0.015];
 x0_norm = (x0_real - lb_real) ./ (ub_real - lb_real);
 
 % --- Optimization Settings (Particle Swarm) ---
@@ -118,11 +118,11 @@ end
 
 % --- Plotting ---
 figure('Name', 'Optimization Results', 'Color', 'w', 'Position', [100, 100, 1200, 800]);
-
+anchor_time = 0.015;
 subplot(2,1,1); hold on; grid on;
-plot(T.Time + x_opt(9), T.FA, 'r--', 'LineWidth', 1.2);
-plot(T.Time + x_opt(9), T.FS, 'g--', 'LineWidth', 1.2);
-plot(T.Time + x_opt(9), T.FN, 'b--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.FA, 'r--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.FS, 'g--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.FN, 'b--', 'LineWidth', 1.2);
 plot(t_sim, simF(:,1), 'r-', 'LineWidth', 1.5);
 plot(t_sim, simF(:,2), 'g-', 'LineWidth', 1.5);
 plot(t_sim, simF(:,3), 'b-', 'LineWidth', 1.5);
@@ -130,9 +130,9 @@ title('Force Comparison (Inertial Frame)'); ylabel('Force (N)');
 legend('Empirical Fx', 'Empirical Fy', 'Empirical Fz', 'Sim Fx', 'Sim Fy', 'Sim Fz', 'Location', 'bestoutside');
 
 subplot(2,1,2); hold on; grid on;
-plot(T.Time + x_opt(9), T.M_roll,  'r--', 'LineWidth', 1.2);
-plot(T.Time + x_opt(9), T.M_pitch, 'g--', 'LineWidth', 1.2);
-plot(T.Time + x_opt(9), T.M_yaw,   'b--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.M_roll,  'r--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.M_pitch, 'g--', 'LineWidth', 1.2);
+plot(T.Time + anchor_time, T.M_yaw,   'b--', 'LineWidth', 1.2);
 plot(t_sim, simM(:,1), 'r-', 'LineWidth', 1.5); 
 plot(t_sim, simM(:,2), 'g-', 'LineWidth', 1.5); 
 plot(t_sim, simM(:,3), 'b-', 'LineWidth', 1.5); 
@@ -204,7 +204,10 @@ function cost = blastCostFunction(x_norm, lb_real, ub_real, T, params)
     simMx = squeeze(totMObj.Values.Data(1,1,:)); simMy = squeeze(totMObj.Values.Data(1,2,:)); simMz = squeeze(totMObj.Values.Data(1,3,:));
 
     validIdx = T.Time <= params.simTime;
-    cTime = T.Time + t0_try;
+    % cTime = T.Time + t0_try;
+    expected_arrival_time = 0.015; 
+    % expected_arrival_time = 0.024056; 
+    cTime = T.Time + expected_arrival_time;
     
     simFx_int = interp1(t_sim, simFx, cTime, 'linear', 'extrap');
     simFy_int = interp1(t_sim, simFy, cTime, 'linear', 'extrap');
