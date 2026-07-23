@@ -113,7 +113,9 @@ If you use this code, please cite the paper:
 
 ## License
 
-The paper is published open access under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). <!-- TODO: add a LICENSE file for the code and state the license here (MIT and BSD-3-Clause are common choices for research code). -->
+The code in this repository is released under the MIT License — you are free to use, modify, and redistribute it, including commercially, provided the copyright notice is retained. If you use it in published work, a citation to the paper above is appreciated.
+
+The article itself is published open access by MDPI under CC BY 4.0.
 
 ## Contact
 
