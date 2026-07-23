@@ -1,0 +1,23 @@
+Ritzel Sphere Optimization Results
+==================================
+
+Sphere 1 (192 g):
+  W  (Equivalent Mass) = 14.97 kg
+  d0 (Standoff Dist)   = 10.12 m
+  Cd (Drag Coeff)      = 0.523
+
+Sphere 2 (557 g):
+  W  (Equivalent Mass) = 14.96 kg
+  d0 (Standoff Dist)   = 10.13 m
+  Cd (Drag Coeff)      = 0.488
+
+Sphere 3 (1138 g):
+  W  (Equivalent Mass) = 14.96 kg
+  d0 (Standoff Dist)   = 10.14 m
+  Cd (Drag Coeff)      = 0.480
+
+Sphere 4 (2269 g):
+  W  (Equivalent Mass) = 14.96 kg
+  d0 (Standoff Dist)   = 10.14 m
+  Cd (Drag Coeff)      = 0.479
+

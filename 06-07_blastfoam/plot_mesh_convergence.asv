@@ -1,0 +1,86 @@
+% =========================================================================
+% Script: PlotMeshConvergence.m
+% Description: Reads CFD mesh convergence data from CSV and outputs 
+%              figures formatted and saved via external subroutines.
+% =========================================================================
+
+clear; clc; close all;
+
+% 1. Add Subroutine Path
+addpath('../00_subroutines/');
+
+%% 2. Load Data
+filename = 'mesh_convergence_data.csv';
+if ~isfile(filename)
+    error('CSV file not found. Please run the Python extraction script first.');
+end
+
+% Read CSV and handle the string columns
+opts = detectImportOptions(filename);
+opts = setvartype(opts, 'Level', 'string');
+simData = readtable(filename, opts);
+
+%% 3. Generate Plot 1: Absolute Difference
+fig1 = figure('Name', 'Mesh Convergence Difference');
+pressures = simData.PeakPressure;
+diffs = abs(diff(pressures));
+numDiffs = length(diffs); 
+
+% Dynamically generate X-axis labels
+labels = cell(1, numDiffs);
+for i = 1:numDiffs
+    labels{i} = sprintf('Lvl %d \\rightarrow %d', i-1, i);
+end
+
+% Plot using dynamic X-axis
+plot(1:numDiffs, diffs, '-o', 'Color', '#1f77b4', 'MarkerFaceColor', '#1f77b4');
+set(gca, 'XTick', 1:numDiffs, 'XTickLabel', labels);
+ylabel('Absolute Difference in Peak Overpressure (Pa)');
+title('Peak Overpressure Differences (Probe 9)');
+grid on; hold on;
+
+% Add text annotations above the markers
+for i = 1:numDiffs
+    text(i, diffs(i) + (max(diffs)*0.08), sprintf('%.2f', diffs(i)), ...
+        'HorizontalAlignment', 'center');
+end
+
+% Apply external MDPI Formatting & Export via savePlot
+formatMDPIFigure(fig1, 'full');
+savePlot(fig1, 'mesh_convergence_diff_MDPI', '.', false);
+fprintf('Saved mesh convergence difference plot.\n');
+
+%% 4. Generate Plot 2: Asymptotic Convergence
+fig2 = figure('Name', 'Asymptotic Mesh Convergence');
+hold on;
+
+% Plot CFD Data
+plot(simData.h_norm(1:end-1), simData.PeakPressure(1:end-1), '-o', 'Color', '#1f77b4', 'MarkerFaceColor', '#1f77b4');
+
+xlabel('Normalized Representative Cell Size (h)');
+ylabel('Peak Overpressure (Pa)');
+title('True Asymptotic Mesh Convergence');
+grid on;
+
+% Set X-axis to focus tightly on the data range, flipped so 1.0 is on left
+xlim([0.0, 1.05]);
+set(gca, 'XDir', 'reverse'); 
+
+% Add text annotations for Levels below markers
+for i = 1:height(simData)-1
+    if i = 1
+        text(simData.h_norm(i), simData.PeakPressure(i) - (max(simData.PeakPressure)*0.005), ...
+        simData.Level(i), 'VerticalAlignment', 'top', ...
+        'HorizontalAlignment', 'left');
+    else
+        text(simData.h_norm(i), simData.PeakPressure(i) - (max(simData.PeakPressure)*0.005), ...
+        simData.Level(i), 'VerticalAlignment', 'top', ...
+        'HorizontalAlignment', 'left');
+    end
+   
+end
+
+% Apply external MDPI Formatting & Export via savePlot
+formatMDPIFigure(fig2, 'half');
+savePlot(fig2, 'mesh_convergence_asymptotic_MDPI', '.', false);
+fprintf('Saved asymptotic mesh convergence plot.\n');

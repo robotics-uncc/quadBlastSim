@@ -1,0 +1,15 @@
+\begin{table}[H]
+\caption{Optimized parameters for Ritzel M-Series spheres.}\label{tab:optimization_results}
+\centering
+% \tablesize{} % Un-comment to change table size if needed (e.g., \tablesize{\footnotesize})
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Sphere} & \textbf{Mass (g)} & \textbf{$W$ (kg)} & \textbf{$d_0$ (m)} & \textbf{$C_d$} \\
+\midrule
+1 & 192 & 14.97 & 10.12 & 0.523 \\
+2 & 557 & 14.96 & 10.13 & 0.488 \\
+3 & 1138 & 14.96 & 10.14 & 0.480 \\
+4 & 2269 & 14.96 & 10.14 & 0.479 \\
+\bottomrule
+\end{tabular}
+\end{table}

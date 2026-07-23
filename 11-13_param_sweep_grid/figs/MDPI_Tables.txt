@@ -1,0 +1,98 @@
+% MDPI Formatted Tables for Peak Metrics and Timing
+
+% Table for d0 = 2.5 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 2.5$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 11039.57 & 5182.08 & 5450.78 & 6307.33 & 5735.86 & 4605.45 \\
+Peak Blast Moment (N$\cdot$m) & 1335.85 & 1073.65 & 1122.28 & 557.72 & 976.25 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 1.16 & 0.91 & 1.13 & 1.36 & 1.36 & 1.54 \\
+Execution Time (s) & 1.77 & 1.04 & 1.00 & 0.98 & 0.89 & 0.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table for d0 = 5 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 5$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 1823.57 & 1389.65 & 1194.98 & 1154.58 & 2118.61 & 4539.75 \\
+Peak Blast Moment (N$\cdot$m) & 236.68 & 195.08 & 198.73 & 101.56 & 166.70 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 0.32 & 0.26 & 0.26 & 0.27 & 0.31 & 0.44 \\
+Execution Time (s) & 1.93 & 1.05 & 1.00 & 0.99 & 0.90 & 0.92 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table for d0 = 7.5 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 7.5$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 735.85 & 554.55 & 399.93 & 683.61 & 995.72 & 2045.65 \\
+Peak Blast Moment (N$\cdot$m) & 97.29 & 80.78 & 81.75 & 56.88 & 69.94 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 0.16 & 0.14 & 0.14 & 0.15 & 0.18 & 0.20 \\
+Execution Time (s) & 1.93 & 1.09 & 0.86 & 0.99 & 0.91 & 0.95 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table for d0 = 10 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 10$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 410.87 & 314.75 & 263.93 & 400.06 & 565.10 & 1164.91 \\
+Peak Blast Moment (N$\cdot$m) & 54.86 & 47.51 & 46.47 & 33.10 & 45.34 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 0.11 & 0.09 & 0.09 & 0.10 & 0.11 & 0.15 \\
+Execution Time (s) & 1.74 & 1.03 & 0.88 & 0.99 & 0.90 & 0.96 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table for d0 = 12.5 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 12.5$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 282.00 & 228.07 & 208.46 & 271.25 & 369.65 & 763.07 \\
+Peak Blast Moment (N$\cdot$m) & 40.53 & 30.91 & 31.10 & 22.47 & 32.74 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 0.08 & 0.07 & 0.07 & 0.07 & 0.09 & 0.13 \\
+Execution Time (s) & 1.83 & 0.96 & 0.88 & 0.99 & 0.87 & 0.98 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table for d0 = 15 m
+\begin{table}[H]
+\centering
+\caption{Peak metrics and execution time for $d_0 = 15$ m.}
+\begin{tabular}{l c c c c c c}
+\toprule
+Quantity & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $\alpha_4$ & $\alpha_5$ & $\alpha_6$ \\
+\midrule
+Peak Blast Force (N) & 202.20 & 177.48 & 156.72 & 196.43 & 258.97 & 548.84 \\
+Peak Blast Moment (N$\cdot$m) & 29.08 & 22.88 & 22.90 & 16.27 & 22.76 & 0.00 \\
+Peak Blast Impulse (N$\cdot$s) & 0.06 & 0.06 & 0.06 & 0.06 & 0.07 & 0.10 \\
+Execution Time (s) & 1.85 & 0.99 & 0.86 & 0.99 & 0.89 & 0.95 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
